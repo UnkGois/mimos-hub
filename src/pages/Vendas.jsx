@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { HiOutlineSearch, HiOutlineShoppingCart, HiOutlineShieldCheck, HiOutlineCash, HiOutlineCreditCard, HiOutlineQrcode } from 'react-icons/hi'
 import { listarVendas, obterEstatisticas, cancelarVenda } from '../services/vendaService'
@@ -36,7 +36,7 @@ export default function Vendas() {
   const [skip, setSkip] = useState(0)
   const limit = 20
 
-  const carregar = async () => {
+  const carregar = useCallback(async () => {
     try {
       const params = { skip, limit }
       if (busca) params.busca = busca
@@ -47,15 +47,14 @@ export default function Vendas() {
       const data = await listarVendas(params)
       setVendas(data.items || [])
       setTotal(data.total || 0)
-    } catch (err) { console.error(err) }
-  }
+    } catch { /* silencioso */ }
+  }, [busca, statusFiltro, formaFiltro, dataInicio, dataFim, skip])
 
-  const carregarStats = async () => {
-    try { setStats(await obterEstatisticas()) } catch {}
-  }
+  const carregarStats = useCallback(async () => {
+    try { setStats(await obterEstatisticas()) } catch { /* silencioso */ }
+  }, [])
 
-  useEffect(() => { carregar(); carregarStats() }, [])
-  useEffect(() => { carregar() }, [busca, statusFiltro, formaFiltro, dataInicio, dataFim, skip])
+  useEffect(() => { carregar(); carregarStats() }, [carregar, carregarStats])
 
   const handleCancelar = async (id) => {
     if (!confirm('Deseja cancelar esta venda? O estoque será restaurado.')) return

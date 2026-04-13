@@ -11,6 +11,7 @@ class ConfiguracaoUpdate(BaseModel):
     tipos_banho: Optional[list[dict[str, Any]]] = None
     alerta_estoque: Optional[dict[str, Any]] = None
     taxas_padrao: Optional[dict[str, Any]] = None
+    pix: Optional[dict[str, Any]] = None
 
 
 class ConfiguracaoResponse(BaseModel):
@@ -19,3 +20,4 @@ class ConfiguracaoResponse(BaseModel):
     tipos_banho: list[dict[str, Any]]
     alerta_estoque: dict[str, Any]
     taxas_padrao: dict[str, Any]
+    pix: dict[str, Any] = {}

@@ -25,8 +25,8 @@ export default function DashboardEstoque() {
         setMargens(m)
         setRecentes(p.items || [])
         setAlertas(a)
-      } catch (err) {
-        console.error('Erro ao carregar dashboard estoque:', err)
+      } catch {
+        // Falha silenciosa
       }
     }
     load()

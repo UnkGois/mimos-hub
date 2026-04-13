@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
   HiOutlineShoppingCart,
   HiOutlineCash,
@@ -62,10 +62,10 @@ const Dashboard = () => {
   // Métricas calculadas do período
   const [metricasPeriodo, setMetricasPeriodo] = useState({ total: 0, faturamento: 0, ticket: 0, qtdItens: 0 })
 
-  const carregarDados = async () => {
+  const carregarDados = useCallback(async () => {
     setLoading(true)
     try {
-      const [statsData] = await Promise.all([obterEstatisticas()])
+      const statsData = await obterEstatisticas()
       setStats(statsData)
 
       const datas = periodo === 'custom'
@@ -88,14 +88,14 @@ const Dashboard = () => {
         ticket: items.length > 0 ? faturamento / items.length : 0,
         qtdItens,
       })
-    } catch (err) {
-      console.error('Erro ao carregar dashboard:', err)
+    } catch {
+      // Erro silencioso — dados não carregados ficam no estado anterior
     } finally {
       setLoading(false)
     }
-  }
+  }, [periodo, customInicio, customFim])
 
-  useEffect(() => { carregarDados() }, [periodo])
+  useEffect(() => { carregarDados() }, [carregarDados])
 
   // Contagem por forma de pagamento
   const porFormaPagamento = vendas.reduce((acc, v) => {

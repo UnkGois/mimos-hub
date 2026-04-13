@@ -13,9 +13,9 @@ class Venda(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     codigo = Column(String(20), unique=True, nullable=False, index=True)
-    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True)
-    operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
-    cupom_id = Column(Integer, ForeignKey("cupons.id"), nullable=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True, index=True)
+    operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False, index=True)
+    cupom_id = Column(Integer, ForeignKey("cupons.id"), nullable=True, index=True)
 
     subtotal = Column(Numeric(10, 2), nullable=False)
     desconto_cupom = Column(Numeric(10, 2), nullable=False, default=0)
@@ -43,7 +43,7 @@ class VendaItem(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     venda_id = Column(Integer, ForeignKey("vendas.id"), nullable=False, index=True)
-    produto_id = Column(Integer, ForeignKey("produtos.id"), nullable=True)
+    produto_id = Column(Integer, ForeignKey("produtos.id"), nullable=True, index=True)
 
     produto_nome = Column(String(200), nullable=False)
     produto_sku = Column(String(50), nullable=True)

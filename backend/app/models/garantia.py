@@ -11,7 +11,7 @@ class Garantia(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     certificado = Column(String(20), unique=True, nullable=False, index=True)
-    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=False)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=False, index=True)
     produto_nome = Column(String(200), nullable=False)
     produto_serie = Column(String(100), nullable=True)
     produto_categoria = Column(String(50), nullable=False)
@@ -23,7 +23,7 @@ class Garantia(Base):
     data_inicio = Column(Date, nullable=False)
     data_termino = Column(Date, nullable=False)
     status = Column(String(20), default="Ativa")
-    operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=True)
+    operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=True, index=True)
     criado_em = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     cliente = relationship("Cliente", backref="garantias")

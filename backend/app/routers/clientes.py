@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-import string
+import string  # noqa: used by random.choices(string.digits)
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -93,6 +93,75 @@ async def atualizar_cliente(
     db: AsyncSession = Depends(get_db),
 ):
     return await cliente_service.atualizar_cliente(db, cliente_id, dados)
+
+
+@router.get("/{cliente_id}/historico")
+async def historico_cliente(
+    cliente_id: int,
+    _user: Usuario = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    from app.models.reserva import Reserva
+    from app.models.venda import Venda, VendaItem
+    from sqlalchemy import select as sa_select, func
+
+    historico = []
+
+    # Reservas (Live Shop)
+    result = await db.execute(
+        sa_select(Reserva).where(Reserva.cliente_id == cliente_id).order_by(Reserva.criado_em.desc()).limit(50)
+    )
+    for r in result.scalars().all():
+        historico.append({
+            "tipo": "live_shop",
+            "codigo": r.codigo,
+            "produto": r.produto_nome,
+            "valor": float(r.produto_preco * r.quantidade),
+            "quantidade": r.quantidade,
+            "status": r.status,
+            "data": r.criado_em.isoformat() if r.criado_em else None,
+        })
+
+    # Vendas (PDV)
+    from sqlalchemy.orm import joinedload
+    result = await db.execute(
+        sa_select(Venda)
+        .options(joinedload(Venda.itens))
+        .where(Venda.cliente_id == cliente_id)
+        .order_by(Venda.criado_em.desc())
+        .limit(50)
+    )
+    for v in result.unique().scalars().all():
+        historico.append({
+            "tipo": "pdv",
+            "codigo": v.codigo,
+            "produto": f"{len(v.itens)} itens",
+            "valor": float(v.total),
+            "quantidade": 1,
+            "status": v.status,
+            "data": v.criado_em.isoformat() if v.criado_em else None,
+        })
+
+    # Garantias
+    from app.models.garantia import Garantia
+    result = await db.execute(
+        sa_select(Garantia).where(Garantia.cliente_id == cliente_id).order_by(Garantia.criado_em.desc()).limit(50)
+    )
+    for g in result.scalars().all():
+        historico.append({
+            "tipo": "garantia",
+            "codigo": g.certificado,
+            "produto": g.produto_nome,
+            "valor": float(g.produto_valor),
+            "quantidade": 1,
+            "status": g.status,
+            "data": g.criado_em.isoformat() if g.criado_em else None,
+        })
+
+    # Ordenar por data
+    historico.sort(key=lambda x: x["data"] or "", reverse=True)
+
+    return historico
 
 
 @router.post("/verificar-telefone")

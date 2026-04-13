@@ -62,6 +62,7 @@ async def obter_configuracoes(db: AsyncSession) -> dict:
         "tipos_banho": json.loads(await _get_valor(db, "tipos_banho")),
         "alerta_estoque": json.loads(await _get_valor(db, "alerta_estoque")),
         "taxas_padrao": json.loads(await _get_valor(db, "taxas_padrao")),
+        "pix": json.loads(await _get_valor(db, "pix")),
     }
 
 
@@ -76,6 +77,8 @@ async def salvar_configuracoes(db: AsyncSession, dados: dict) -> dict:
         await _set_valor(db, "alerta_estoque", json.dumps(dados["alerta_estoque"]))
     if "taxas_padrao" in dados and dados["taxas_padrao"] is not None:
         await _set_valor(db, "taxas_padrao", json.dumps(dados["taxas_padrao"]))
+    if "pix" in dados and dados["pix"] is not None:
+        await _set_valor(db, "pix", json.dumps(dados["pix"]))
 
     await db.commit()
     return await obter_configuracoes(db)

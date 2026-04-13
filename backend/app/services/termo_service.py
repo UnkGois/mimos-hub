@@ -533,6 +533,7 @@ async def listar_todos(
         .options(
             joinedload(TermoRetirada.garantia).joinedload(Garantia.cliente),
             joinedload(TermoRetirada.operador),
+            joinedload(TermoRetirada.cliente),
         )
     )
     count_base = select(func.count(TermoRetirada.id))

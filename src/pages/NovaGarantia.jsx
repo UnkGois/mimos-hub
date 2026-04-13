@@ -9,6 +9,7 @@ import {
   HiOutlineSparkles,
   HiOutlineCheck,
   HiOutlineClipboardCopy,
+  HiOutlineClipboardCheck,
 } from 'react-icons/hi'
 import { maskCPF, maskPhone, maskCEP, maskCurrency, removeMask } from '../utils/masks'
 import { isRequired, isValidCPF, isValidPhone, isValidEmail, isValidCEP } from '../utils/validators'
@@ -72,9 +73,13 @@ const NovaGarantia = () => {
   const toast = useToast()
   const formRef = useRef(null)
 
-  // Estado do formulário — pré-preenche com query params do PDV
+  // Estado do formulário — pré-preenche com query params do PDV/LiveShop
   const [form, setForm] = useState({
-    cpf: '', nome: searchParams.get('nome') || '', nascimento: '', telefone: '', email: '',
+    cpf: searchParams.get('cpf') || '',
+    nome: searchParams.get('nome') || '',
+    nascimento: '',
+    telefone: searchParams.get('telefone') || '',
+    email: '',
     cep: '', endereco: '', numero: '', complemento: '',
     bairro: '', cidade: '', uf: '',
     produto: searchParams.get('produto_nome') || '', serie: '',
@@ -95,6 +100,37 @@ const NovaGarantia = () => {
   const [erroEmissao, setErroEmissao] = useState('')
 
   const dataTermino = calcularTermino(form.dataCompra, form.periodo)
+
+  // Auto-buscar cliente se CPF veio nos query params
+  useEffect(() => {
+    const cpfParam = searchParams.get('cpf')
+    if (cpfParam && cpfParam.length >= 11) {
+      const buscar = async () => {
+        try {
+          const cliente = await clienteService.buscarPorCPF(cpfParam)
+          if (cliente) {
+            setForm(prev => ({
+              ...prev,
+              cpf: cpfParam,
+              nome: cliente.nome || prev.nome,
+              telefone: cliente.telefone || prev.telefone,
+              email: cliente.email || '',
+              nascimento: cliente.data_nascimento || '',
+              cep: cliente.cep || '',
+              endereco: cliente.endereco || '',
+              numero: cliente.numero || '',
+              complemento: cliente.complemento || '',
+              bairro: cliente.bairro || '',
+              cidade: cliente.cidade || '',
+              uf: cliente.uf || '',
+            }))
+            setClienteRecorrente(cliente)
+          }
+        } catch { /* não encontrado */ }
+      }
+      buscar()
+    }
+  }, [])
 
   // Escape fecha modal de confirmação (se não estiver emitindo)
   useEffect(() => {
@@ -360,7 +396,14 @@ const NovaGarantia = () => {
         </div>
 
         {/* Botões */}
-        <div className="flex gap-4 mt-6">
+        <div className="flex flex-wrap gap-3 mt-6">
+          <button
+            onClick={() => navigate('/termos')}
+            className="bg-primary text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/40 transition-all duration-300 cursor-pointer flex items-center gap-2"
+          >
+            <HiOutlineClipboardCheck className="w-5 h-5" />
+            Gerar Termo de Retirada
+          </button>
           <button
             onClick={handleNovaGarantia}
             className="bg-accent text-white font-semibold px-6 py-3 rounded-2xl shadow-lg shadow-accent/30 hover:shadow-xl hover:shadow-accent/40 transition-all duration-300 cursor-pointer"

@@ -26,6 +26,11 @@ export async function atualizar(id, dados) {
   return data
 }
 
+export async function obterHistorico(id) {
+  const { data } = await api.get(`/clientes/${id}/historico`)
+  return data
+}
+
 export async function enviarCodigoVerificacao(telefone) {
   const { data } = await api.post('/clientes/verificar-telefone', { telefone })
   return data

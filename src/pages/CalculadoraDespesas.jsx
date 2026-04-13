@@ -17,8 +17,8 @@ export default function CalculadoraDespesas() {
         const [f, v] = await Promise.all([getDespesasFixas(), getDespesasVariaveis()])
         setFixas(f)
         setVariaveis(v)
-      } catch (err) {
-        console.error('Erro ao carregar despesas:', err)
+      } catch {
+        // Falha silenciosa
       } finally {
         setCarregando(false)
       }

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { HiOutlineSearch, HiOutlineUserAdd, HiOutlineX, HiOutlinePencil, HiOutlineCheckCircle } from 'react-icons/hi'
-import { listar, criar, atualizar } from '../services/clienteService'
+import { listar, criar, atualizar, obterHistorico } from '../services/clienteService'
 import { useToast } from '../components/Toast'
+import { formatarMoeda } from '../utils/calculos'
 import { maskCPF, maskPhone, maskCEP, removeMask } from '../utils/masks'
 import { isValidCPF, isValidEmail } from '../utils/validators'
 import DrawerPanel from '../components/DrawerPanel'
@@ -19,6 +20,8 @@ export default function Clientes() {
   const limit = 20
 
   const [selecionado, setSelecionado] = useState(null)
+  const [historico, setHistorico] = useState([])
+  const [carregandoHistorico, setCarregandoHistorico] = useState(false)
   const [modalAberto, setModalAberto] = useState(false)
   const [editando, setEditando] = useState(null)
   const [salvando, setSalvando] = useState(false)
@@ -131,6 +134,16 @@ export default function Clientes() {
     } catch { /* silencioso */ }
   }
 
+  const selecionarCliente = async (c) => {
+    setSelecionado(c)
+    setCarregandoHistorico(true)
+    try {
+      const h = await obterHistorico(c.id)
+      setHistorico(h)
+    } catch { setHistorico([]) }
+    finally { setCarregandoHistorico(false) }
+  }
+
   const formatCPF = (cpf) => {
     if (!cpf) return ''
     const c = cpf.replace(/\D/g, '')
@@ -180,7 +193,7 @@ export default function Clientes() {
               </thead>
               <tbody>
                 {clientes.map(c => (
-                  <tr key={c.id} onClick={() => setSelecionado(c)} className="border-b border-gray-50 cursor-pointer hover:bg-gray-50/50 transition-colors">
+                  <tr key={c.id} onClick={() => selecionarCliente(c)} className="border-b border-gray-50 cursor-pointer hover:bg-gray-50/50 transition-colors">
                     <td className="py-3 px-4 font-medium text-gray-800">{c.nome}</td>
                     <td className="py-3 px-4 text-gray-600 font-mono text-xs">{formatCPF(c.cpf)}</td>
                     <td className="py-3 px-4 text-gray-600">
@@ -229,10 +242,11 @@ export default function Clientes() {
       )}
 
       {/* Drawer detalhes */}
-      <DrawerPanel open={!!selecionado} onClose={() => setSelecionado(null)} title={selecionado?.nome || ''}>
+      <DrawerPanel open={!!selecionado} onClose={() => { setSelecionado(null); setHistorico([]) }} title={selecionado?.nome || ''}>
         {selecionado && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-5">
+            {/* Dados pessoais */}
+            <div className="grid grid-cols-2 gap-3">
               <div><p className="text-xs text-gray-400">CPF</p><p className="text-sm font-mono">{formatCPF(selecionado.cpf)}</p></div>
               <div>
                 <p className="text-xs text-gray-400">Telefone</p>
@@ -240,24 +254,33 @@ export default function Clientes() {
               </div>
               <div><p className="text-xs text-gray-400">Email</p><p className="text-sm">{selecionado.email || '—'}</p></div>
               <div><p className="text-xs text-gray-400">Nascimento</p><p className="text-sm">{selecionado.data_nascimento ? new Date(selecionado.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</p></div>
-              <div><p className="text-xs text-gray-400">Compras</p><p className="text-sm font-semibold">{selecionado.total_compras}</p></div>
-              <div><p className="text-xs text-gray-400">Desde</p><p className="text-sm">{new Date(selecionado.criado_em).toLocaleDateString('pt-BR')}</p></div>
+              <div><p className="text-xs text-gray-400">Total Compras</p><p className="text-sm font-bold text-primary">{selecionado.total_compras}</p></div>
+              <div><p className="text-xs text-gray-400">Cliente desde</p><p className="text-sm">{new Date(selecionado.criado_em).toLocaleDateString('pt-BR')}</p></div>
             </div>
 
-            {(selecionado.endereco || selecionado.cidade) && (
-              <div>
-                <p className="text-xs text-gray-400 mb-1">Endereço</p>
-                <p className="text-sm text-gray-600">
-                  {[selecionado.endereco, selecionado.numero, selecionado.complemento].filter(Boolean).join(', ')}
-                  {selecionado.bairro && ` — ${selecionado.bairro}`}
-                </p>
-                <p className="text-sm text-gray-600">{[selecionado.cidade, selecionado.uf].filter(Boolean).join('/')} {selecionado.cep && `— CEP ${maskCEP(selecionado.cep)}`}</p>
-              </div>
-            )}
-
-            {/* Verificar WhatsApp */}
+            {/* Endereço */}
             <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs text-gray-400 mb-2">Verificar WhatsApp</p>
+              <p className="text-xs text-gray-400 font-medium mb-1">Endereço</p>
+              {selecionado.endereco || selecionado.cidade ? (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-sm text-gray-700">
+                    {[selecionado.endereco, selecionado.numero].filter(Boolean).join(', ')}
+                    {selecionado.complemento && ` - ${selecionado.complemento}`}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    {selecionado.bairro && `${selecionado.bairro}, `}
+                    {[selecionado.cidade, selecionado.uf].filter(Boolean).join('/')}
+                  </p>
+                  {selecionado.cep && <p className="text-xs text-gray-400 mt-1">CEP: {maskCEP(selecionado.cep)}</p>}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 italic">Nenhum endereço cadastrado</p>
+              )}
+            </div>
+
+            {/* WhatsApp */}
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs text-gray-400 mb-2">WhatsApp</p>
               <WhatsAppVerify
                 telefone={selecionado.telefone}
                 clienteId={selecionado.id}
@@ -266,6 +289,64 @@ export default function Clientes() {
               />
             </div>
 
+            {/* Histórico de compras */}
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs text-gray-400 font-medium mb-2">Histórico</p>
+              {carregandoHistorico ? (
+                <div className="flex justify-center py-4">
+                  <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : historico.length > 0 ? (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {historico.map((h, i) => {
+                    const statusCor = {
+                      Pago: 'bg-emerald-100 text-emerald-700',
+                      Concluida: 'bg-emerald-100 text-emerald-700',
+                      Ativa: 'bg-blue-100 text-blue-700',
+                      Reservado: 'bg-amber-100 text-amber-700',
+                      AguardandoPagamento: 'bg-blue-100 text-blue-700',
+                      Cancelado: 'bg-red-100 text-red-700',
+                      Cancelada: 'bg-red-100 text-red-700',
+                      Expirado: 'bg-gray-100 text-gray-500',
+                      Expirada: 'bg-gray-100 text-gray-500',
+                    }
+                    const tipoCor = {
+                      live_shop: 'text-pink-600',
+                      pdv: 'text-blue-600',
+                      garantia: 'text-emerald-600',
+                    }
+                    const tipoLabel = {
+                      live_shop: 'Live',
+                      pdv: 'PDV',
+                      garantia: 'Garantia',
+                    }
+                    return (
+                      <div key={i} className="flex items-center justify-between py-2 border-b border-gray-50 last:border-0">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] font-bold ${tipoCor[h.tipo] || 'text-gray-500'}`}>{tipoLabel[h.tipo] || h.tipo}</span>
+                            <p className="text-sm font-medium text-gray-800 truncate">{h.produto}</p>
+                          </div>
+                          <p className="text-xs text-gray-400">
+                            {h.codigo} · {h.data ? new Date(h.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : ''}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0 ml-2">
+                          <p className="text-sm font-semibold text-gray-800">{formatarMoeda(h.valor)}</p>
+                          <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${statusCor[h.status] || 'bg-gray-100 text-gray-500'}`}>
+                            {h.status}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400 italic text-center py-3">Nenhuma compra registrada</p>
+              )}
+            </div>
+
+            {/* Botão editar */}
             <div className="flex gap-3 pt-4 border-t border-gray-100">
               <button onClick={() => abrirEditar(selecionado)}
                 className="flex-1 bg-primary text-white py-2.5 rounded-xl font-semibold hover:bg-primaryDark transition-colors text-sm cursor-pointer flex items-center justify-center gap-1.5">

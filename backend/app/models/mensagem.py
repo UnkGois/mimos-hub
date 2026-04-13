@@ -11,7 +11,7 @@ class Mensagem(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     garantia_id = Column(Integer, ForeignKey("garantias.id"), nullable=True)
-    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=False)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True)
     tipo = Column(String(20), nullable=False)
     conteudo = Column(Text, nullable=False)
     status = Column(String(20), default="Pendente")

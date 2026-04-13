@@ -5,6 +5,15 @@ export async function criar(dados) {
   return data
 }
 
+export async function criarDireto({ reserva_id, venda_id, tipo_fluxo = 'presencial' }) {
+  const params = new URLSearchParams()
+  if (reserva_id) params.set('reserva_id', reserva_id)
+  if (venda_id) params.set('venda_id', venda_id)
+  params.set('tipo_fluxo', tipo_fluxo)
+  const { data } = await api.post(`/termos/direto?${params.toString()}`)
+  return data
+}
+
 export async function criarPresencial(dados) {
   const { data } = await api.post('/termos/presencial', dados)
   return data

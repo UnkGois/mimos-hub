@@ -21,6 +21,9 @@ const CalculadoraDespesas = lazy(() => import('./pages/CalculadoraDespesas'))
 const Configuracoes = lazy(() => import('./pages/Configuracoes'))
 const PDV = lazy(() => import('./pages/PDV'))
 const Clientes = lazy(() => import('./pages/Clientes'))
+const LiveShop = lazy(() => import('./pages/LiveShop'))
+const VendasLiveShop = lazy(() => import('./pages/VendasLiveShop'))
+const Checkout = lazy(() => import('./pages/Checkout'))
 const VendasPage = lazy(() => import('./pages/Vendas'))
 
 // Fallback de carregamento
@@ -41,6 +44,7 @@ const App = () => {
             {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
             <Route path="/assinar/:token" element={<AssinarTermo />} />
+            <Route path="/checkout/:token" element={<Checkout />} />
 
             {/* Rotas protegidas */}
             <Route element={<ProtectedRoute />}>
@@ -57,6 +61,8 @@ const App = () => {
                 <Route path="/pdv" element={<PDV />} />
                 <Route path="/vendas" element={<VendasPage />} />
                 <Route path="/clientes" element={<Clientes />} />
+                <Route path="/live-shop" element={<LiveShop />} />
+                <Route path="/vendas-live" element={<VendasLiveShop />} />
                 <Route path="/despesas" element={<CalculadoraDespesas />} />
                 <Route path="/configuracoes" element={<Configuracoes />} />
               </Route>

@@ -8,9 +8,10 @@ from app.models.produto import Produto, ProdutoCanal
 from app.models.despesa import DespesaFixa, DespesaVariavel
 from app.models.configuracao import Configuracao
 from app.models.venda import Venda, VendaItem
+from app.models.reserva import Reserva
 
 __all__ = [
     "Usuario", "Cliente", "Garantia", "Mensagem", "Cupom", "TermoRetirada",
     "Produto", "ProdutoCanal", "DespesaFixa", "DespesaVariavel", "Configuracao",
-    "Venda", "VendaItem",
+    "Venda", "VendaItem", "Reserva",
 ]

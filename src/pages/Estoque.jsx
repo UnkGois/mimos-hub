@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { HiOutlineSearch, HiOutlineDownload, HiOutlinePlusCircle, HiOutlineCube, HiOutlinePrinter, HiOutlineTrash } from 'react-icons/hi'
 import { useNavigate } from 'react-router-dom'
 import { getProdutos, excluirProduto } from '../services/produtoService'
@@ -20,7 +20,7 @@ export default function Estoque() {
   const [selecionados, setSelecionados] = useState(new Set())
   const [categorias, setCategorias] = useState([])
 
-  const carregarProdutos = async () => {
+  const carregarProdutos = useCallback(async () => {
     try {
       const params = {}
       if (busca) params.busca = busca
@@ -28,17 +28,15 @@ export default function Estoque() {
       if (filtroStatus) params.status = filtroStatus
       const data = await getProdutos(params)
       setProdutos(data.items || [])
-    } catch (err) {
-      console.error('Erro ao carregar produtos:', err)
+    } catch {
+      // Falha silenciosa — mantém estado anterior
     }
-  }
+  }, [busca, filtroCategoria, filtroStatus])
 
   useEffect(() => {
     carregarProdutos()
     getConfiguracoes().then(c => setCategorias(c.categorias || [])).catch(() => {})
-  }, [])
-
-  useEffect(() => { carregarProdutos() }, [busca, filtroCategoria, filtroStatus])
+  }, [carregarProdutos])
 
   const filtrados = produtos
 
@@ -60,8 +58,8 @@ export default function Estoque() {
       await excluirProduto(id)
       await carregarProdutos()
       setSelecionado(null)
-    } catch (err) {
-      console.error('Erro ao excluir:', err)
+    } catch {
+      // Falha silenciosa
     }
   }
 
@@ -72,8 +70,8 @@ export default function Estoque() {
       await Promise.all([...selecionados].map(id => excluirProduto(id)))
       setSelecionados(new Set())
       await carregarProdutos()
-    } catch (err) {
-      console.error('Erro ao excluir em lote:', err)
+    } catch {
+      // Falha silenciosa
     }
   }
 

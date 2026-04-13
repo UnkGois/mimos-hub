@@ -39,8 +39,8 @@ class AssinaturaSubmit(BaseModel):
 class TermoRetiradaResponse(BaseModel):
     id: int
     token: str
-    garantia_id: int
-    cliente_id: int
+    garantia_id: Optional[int] = None
+    cliente_id: Optional[int] = None
     operador_id: int
     local_retirada: str
     data_retirada: Optional[datetime] = None

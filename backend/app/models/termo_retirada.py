@@ -20,8 +20,15 @@ class TermoRetirada(Base):
         index=True,
         default=lambda: str(uuid.uuid4()),
     )
-    garantia_id = Column(Integer, ForeignKey("garantias.id"), nullable=False)
-    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=False)
+    garantia_id = Column(Integer, ForeignKey("garantias.id"), nullable=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True)
+    reserva_id = Column(Integer, ForeignKey("reservas.id"), nullable=True)
+    venda_id = Column(Integer, ForeignKey("vendas.id"), nullable=True)
+
+    # Info do produto (snapshot para quando não tem garantia)
+    produto_nome = Column(String(200), nullable=True)
+    produto_valor = Column(String(50), nullable=True)
+    cliente_nome_direto = Column(String(200), nullable=True)
     operador_id = Column(Integer, ForeignKey("usuarios.id"), nullable=False)
 
     # Retirada
@@ -61,3 +68,5 @@ class TermoRetirada(Base):
     garantia = relationship("Garantia", backref="termos_retirada")
     cliente = relationship("Cliente")
     operador = relationship("Usuario")
+    reserva = relationship("Reserva")
+    venda = relationship("Venda")

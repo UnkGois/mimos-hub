@@ -13,6 +13,7 @@ const TABS = [
   { key: 'alertas', label: 'Alertas de Estoque' },
   { key: 'categorias', label: 'Categorias' },
   { key: 'banhos', label: 'Tipos de Banho' },
+  { key: 'pix', label: 'PIX / Live Shop' },
   { key: 'despesas', label: 'Calculadora Despesas' },
 ]
 
@@ -329,6 +330,36 @@ export default function Configuracoes() {
             className="mt-3 flex items-center gap-2 text-primary text-sm font-medium hover:underline">
             <HiOutlinePlusCircle className="w-4 h-4" /> Adicionar Tipo de Banho
           </button>
+        </div>
+      )}
+
+      {/* Aba PIX */}
+      {abaAtiva === 'pix' && (
+        <div className="space-y-4">
+          <p className="text-sm text-gray-500">Configure os dados do PIX que serão enviados nas mensagens de reserva do Live Shop.</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Chave PIX (CPF, e-mail, celular ou aleatória)</label>
+              <input value={config?.pix?.chave_pix || ''} onChange={e => update('pix.chave_pix', e.target.value)} className={inputCls}
+                placeholder="Ex: 12345678900 ou email@exemplo.com" />
+            </div>
+            <div>
+              <label className={labelCls}>Nome do Titular</label>
+              <input value={config?.pix?.nome_pix || ''} onChange={e => update('pix.nome_pix', e.target.value)} className={inputCls}
+                placeholder="Nome que aparece no PIX" />
+            </div>
+            <div>
+              <label className={labelCls}>Banco</label>
+              <input value={config?.pix?.banco_pix || ''} onChange={e => update('pix.banco_pix', e.target.value)} className={inputCls}
+                placeholder="Ex: Nubank, Inter, Itaú" />
+            </div>
+            <div>
+              <label className={labelCls}>Cancelamento automático de reservas (horas)</label>
+              <input type="number" min="1" max="72" value={config?.pix?.horas_expiracao || 6}
+                onChange={e => update('pix.horas_expiracao', parseInt(e.target.value) || 6)} className={inputCls} />
+              <p className="text-xs text-gray-400 mt-1">Reservas não pagas serão canceladas automaticamente após esse período</p>
+            </div>
+          </div>
         </div>
       )}
 

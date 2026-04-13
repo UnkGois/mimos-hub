@@ -21,6 +21,7 @@ import {
   HiOutlineShoppingCart,
   HiOutlineReceiptTax,
   HiOutlineUserGroup,
+  HiOutlineStatusOnline,
 } from 'react-icons/hi'
 import { useAuth } from '../contexts/AuthContext'
 import { useToast } from '../components/Toast'
@@ -40,7 +41,9 @@ const navSections = [
     label: 'Vendas',
     links: [
       { to: '/pdv', label: 'PDV', icon: HiOutlineShoppingCart },
-      { to: '/vendas', label: 'Histórico', icon: HiOutlineReceiptTax },
+      { to: '/live-shop', label: 'Live Shop', icon: HiOutlineStatusOnline },
+      { to: '/vendas-live', label: 'Vendas Live', icon: HiOutlineReceiptTax },
+      { to: '/vendas', label: 'Histórico PDV', icon: HiOutlineReceiptTax },
       { to: '/clientes', label: 'Clientes', icon: HiOutlineUserGroup },
     ],
   },
