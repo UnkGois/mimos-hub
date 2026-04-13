@@ -5,6 +5,7 @@ WORKDIR /app
 # Dependências do sistema para reportlab/Pillow
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
