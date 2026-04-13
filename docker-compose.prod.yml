@@ -1,0 +1,66 @@
+# =====================================================
+# MDA - Mimos de Alice | Mimos Hub
+# Docker Compose para PRODUÇÃO
+# =====================================================
+# USO:
+#   docker compose -f docker-compose.prod.yml up -d
+#
+# IMPORTANTE: Antes de usar em produção:
+# 1. Atualize TODAS as senhas no .env
+# 2. Configure HTTPS via reverse proxy (nginx/traefik)
+# 3. Configure backup do volume pgdata
+# 4. Defina REGISTRATION_SECRET_KEY para proteger cadastro
+# =====================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: mimos-hub-db-prod
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mimos_hub
+      POSTGRES_USER: mimos_admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "127.0.0.1:5432:5432"  # Apenas localhost em produção
+    volumes:
+      - pgdata_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mimos_admin -d mimos_hub"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mimos-hub-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mimos-hub-api-prod
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://mimos_admin:${POSTGRES_PASSWORD}@db:5432/mimos_hub
+    ports:
+      - "127.0.0.1:8000:8000"  # Apenas localhost (reverse proxy na frente)
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - mimos-hub-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  pgdata_prod:
+    name: mimos-hub-pgdata-prod
+
+networks:
+  mimos-hub-network:
+    name: mimos-hub-network
+    driver: bridge
