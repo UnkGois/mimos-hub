@@ -7,7 +7,7 @@ export async function getProdutos({ busca, categoria, status, skip = 0, limit = 
   if (status) params.status = status
   params.skip = skip
   params.limit = limit
-  const { data } = await api.get('/produtos', { params })
+  const { data } = await api.get('/produtos/', { params })
   return data
 }
 
@@ -17,7 +17,7 @@ export async function getProdutoById(id) {
 }
 
 export async function criarProduto(produto) {
-  const { data } = await api.post('/produtos', produto)
+  const { data } = await api.post('/produtos/', produto)
   return data
 }
 
